@@ -100,7 +100,8 @@ export default class App extends Component<Props> {
     const key2 = await secp256k1.ext.generateKey();
     const pub2 = await secp256k1.computePubkey(key2, true);
 
-    const pubMessage = "Hello World :>";
+    const pubMessage = "Hello World 你好世界，:>";
+    
     const encryped1 = await secp256k1.ext.encryptECDH(key1, pub2, pubMessage);
     const encryped2 = await secp256k1.ext.encryptECDH(key2, pub1, pubMessage);
     const decryped1 = await secp256k1.ext.decryptECDH(key2, pub1, encryped1);
@@ -109,6 +110,25 @@ export default class App extends Component<Props> {
       message += "\next ECDH encrypt: reject";
     } else {
       message += "\next ECDH encrypt: pass";
+    }
+    this.setState({
+      message,
+    });
+
+    const skey1 = "G6rWYPkY5m6VGkdUBzSFPxB8/lWcKOACBTHTlA4qmXQ";
+    const skey2 = "1H1SJuGwoSFTqNI8wvVWEdGRpBvTnzLckoZ1QTF7gI0";
+    const spub1 = await secp256k1.computePubkey(skey1, true);
+    const spub2 = await secp256k1.computePubkey(skey2, true);
+    const smessage = "Hello World 你好世界，:>\n据中国天气网消息，寒潮持续影响中，预计今明天（26-27日）北方气温将跌至此次过程最低，南方则在周末降至谷底，超一半国土气温将创今年入冬来的新低。同时，南方的雨雪今天将逐渐展开，甘肃、陕西等地降雪增多。";
+    const sencrypt = "pYSjWncbST4liblAqDt9SklBHiXsn3JBPDBr/4Y3/d8cWy+dNMXHe/yHlB6t4I33m7Je4hrlb1RMECdnNk1TYhQb7J+Uw3hLhXmOol5rRKpUZgLl96bb+F4jTs9mLxcza2BbHWJLLF7aJxSR/MrtruXpCTnUSxRpdBe6m+gvF9IpYa1A+256Xnzm214LLvXxitzNYMidGCztOFIQwAccuD65kvsf7F91gym/1yEAHxLC66sw/t4JlvYBdVba7ndSCG12Exyyq+b8qxWIlxj3YGr5BBaql5AYa/4wZfq0NRH5YSWXsrEegyUDidsfew0lxXjTPno6liK+TjvGPJHIvnjJMhhlbCNGM6Ie9GJfy2a06LncliBs3YeKWcHWIlrvvITCRX3ehLwL1qgOlD7AjidV6AhnaHNqxeGSTXX3ZOFMEBdTILbWbogiJ6AeXjwc";
+  
+    const sencryped1 = await secp256k1.ext.encryptECDH(skey1, spub2, smessage);
+    const sencryped2 = await secp256k1.ext.encryptECDH(skey2, spub1, smessage);
+    const sdecryped1 = await secp256k1.ext.decryptECDH(skey2, spub1, sencryped1);
+    if (sencryped1 !== sencryped2 || sdecryped1 !== smessage || sencrypt !== sencryped1) {
+      message += "\next ECDH 2 encrypt: reject";
+    } else {
+      message += "\next ECDH 2 encrypt: pass";
     }
     this.setState({
       message,
