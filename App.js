@@ -87,13 +87,32 @@ export default class App extends Component<Props> {
       console.error(e);
       done_all = false;
     }
-    message += `all: ${done_all ? "pass" : "reject"}`;
+    message += `standard: ${done_all ? "pass" : "reject"}`;
     this.setState({
       message,
     });
     if (!done_all) {
       console.error(message);
     }
+
+    const key1 = await secp256k1.ext.generateKey();
+    const pub1 = await secp256k1.computePubkey(key1, true);
+    const key2 = await secp256k1.ext.generateKey();
+    const pub2 = await secp256k1.computePubkey(key2, true);
+
+    const pubMessage = "Hello World :>";
+    const encryped1 = await secp256k1.ext.encryptECDH(key1, pub2, pubMessage);
+    const encryped2 = await secp256k1.ext.encryptECDH(key2, pub1, pubMessage);
+    const decryped1 = await secp256k1.ext.decryptECDH(key2, pub1, encryped1);
+
+    if (encryped1 !== encryped2 || decryped1 !== pubMessage) {
+      message += "\next ECDH encrypt: reject";
+    } else {
+      message += "\next ECDH encrypt: pass";
+    }
+    this.setState({
+      message,
+    });
   }
   render() {
     return (
