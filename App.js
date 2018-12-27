@@ -105,8 +105,9 @@ export default class App extends Component<Props> {
     const encryped1 = await secp256k1.ext.encryptECDH(key1, pub2, pubMessage);
     const encryped2 = await secp256k1.ext.encryptECDH(key2, pub1, pubMessage);
     const decryped1 = await secp256k1.ext.decryptECDH(key2, pub1, encryped1);
+    const decryped2 = await secp256k1.ext.decryptECDH(key1, pub2, encryped2);
 
-    if (encryped1 !== encryped2 || decryped1 !== pubMessage) {
+    if (encryped1 !== encryped2 || decryped1 !== pubMessage || decryped2 !== pubMessage) {
       message += "\next ECDH encrypt: reject";
     } else {
       message += "\next ECDH encrypt: pass";
@@ -119,18 +120,58 @@ export default class App extends Component<Props> {
     const skey2 = "1H1SJuGwoSFTqNI8wvVWEdGRpBvTnzLckoZ1QTF7gI0";
     const spub1 = await secp256k1.computePubkey(skey1, true);
     const spub2 = await secp256k1.computePubkey(skey2, true);
-    const smessage = "Hello World 你好世界，:>\n据中国天气网消息，寒潮持续影响中，预计今明天（26-27日）北方气温将跌至此次过程最低，南方则在周末降至谷底，超一半国土气温将创今年入冬来的新低。同时，南方的雨雪今天将逐渐展开，甘肃、陕西等地降雪增多。";
-    const sencrypt = "mIJehH7HCUnIHBvhIXA6j1lOeznxXDq880M09K6JEHFYnnf/cOfRl+RyvVfUylRXXMl7GZQU0CDuPuoCizbVNbpiXpEgu3ZyhcYstOCS/O/G7LBQuu4QdvGaOrsdbG8zr/UXqBKXaNIXwOW1uXQXUqfygGmrPH9i+Y6GLi/1ec7V9nh/3VOf2mL4JJ/JT9PpwiC7xrz3n2aFNWrTR+pjSda1A1ZjobHtjSC04h1gE5yt9G3nfs1uJ6kvKILpjYdFZuJwvyphJ9R/WpUDOseCTa/fEv8Ywy2D/X9TtbeBdAx1rTU1eNQG6xHqScWBU9AyRaBZFpiDbpXkLoQ/MvHjqeudj/jF3vWJikjbqzb6+6rWxw51SC4qF/deaSJgYDXb+MW65xb5Jv64xDnkjZy3lZKzVpbHwa9gmU0y6MrhmdJZaDcan4jHvqnwBi193//a";
-    
-    const sencryped1 = await secp256k1.ext.encryptECDH(skey1, spub2, smessage);
-    const sencryped2 = await secp256k1.ext.encryptECDH(skey2, spub1, smessage);
-    const sdecryped1 = await secp256k1.ext.decryptECDH(skey2, spub1, sencryped1);
-    console.log(sencryped1)
-    if (sencryped1 !== sencryped2 || sdecryped1 !== smessage || sencrypt !== sencryped1) {
+
+    const smessage = [
+      "Hello World 你好世界，:>\n据中国天气网消息，寒潮持续影响中，预计今明天（26-27日）北方气温将跌至此次过程最低，南方则在周末降至谷底，超一半国土气温将创今年入冬来的新低。同时，南方的雨雪今天将逐渐展开，甘肃、陕西等地降雪增多。",
+      "的",
+      "00000000",
+      "000000001",
+      "0000000000000000",
+      "00000000000000001",
+      "00000000000000000000000000000000",
+      "000000000000000000000000000000001",
+    ];
+    const ssecret = [
+      "mIJehH7HCUnIHBvhIXA6j1lOeznxXDq880M09K6JEHFYnnf/cOfRl+RyvVfUylRXXMl7GZQU0CDuPuoCizbVNbpiXpEgu3ZyhcYstOCS/O/G7LBQuu4QdvGaOrsdbG8zr/UXqBKXaNIXwOW1uXQXUqfygGmrPH9i+Y6GLi/1ec7V9nh/3VOf2mL4JJ/JT9PpwiC7xrz3n2aFNWrTR+pjSda1A1ZjobHtjSC04h1gE5yt9G3nfs1uJ6kvKILpjYdFZuJwvyphJ9R/WpUDOseCTa/fEv8Ywy2D/X9TtbeBdAx1rTU1eNQG6xHqScWBU9AyRaBZFpiDbpXkLoQ/MvHjqeudj/jF3vWJikjbqzb6+6rWxw51SC4qF/deaSJgYDXb+MW65xb5Jv64xDnkjZy3lZKzVpbHwa9gmU0y6MrhmdJZaDcan4jHvqnwBi193//a",
+      "UcSrQwjDWynjtez+FV0O9Q",
+      "7wU229G+z7aByeWD/wGeQw",
+      "b0PY5hT7ZmAMEq1oz0vIEA",
+      "lalnyYK2vAysuvwfFph2g0pGLOYe+45AIdKWRq3MBUY",
+      "lalnyYK2vAysuvwfFph2g7XAAyaNTtjZSRVdIw3MovQ",
+      "lalnyYK2vAysuvwfFph2g5WpZ8mCtrwMrLr8HxaYdoNKRizmHvuOQCHSlkatzAVG",
+      "lalnyYK2vAysuvwfFph2g5WpZ8mCtrwMrLr8HxaYdoO1wAMmjU7Y2UkVXSMNzKL0",
+    ];
+
+    let bad = false;
+    for (let i = 0; i < smessage.length; i++) {
+      const sencryped1 = await secp256k1.ext.encryptECDH(skey1, spub2, smessage[i]);
+      const sencryped2 = await secp256k1.ext.encryptECDH(skey2, spub1, smessage[i]);
+      const sdecryped1 = await secp256k1.ext.decryptECDH(skey2, spub1, sencryped1);
+      const sdecryped2 = await secp256k1.ext.decryptECDH(skey1, spub2, sencryped2);
+      if (sencryped1 !== sencryped2 || ssecret[i] !== sencryped1) {
+        console.log("diff encryption");
+        console.log(sencryped1);
+        console.log(sencryped2);
+        console.log(ssecret[i]);
+        console.log("");
+        bad = true;
+      }
+      if (sdecryped1 !== sdecryped2 || smessage[i] !== sdecryped1) {
+        console.log("diff decryption");
+        console.log(sdecryped1);
+        console.log(sdecryped2);
+        console.log(smessage[i]);
+        console.log("");
+        bad = true;
+      }
+    }
+
+    if (bad) {
       message += "\next ECDH 2 encrypt: reject";
     } else {
       message += "\next ECDH 2 encrypt: pass";
     }
+
     this.setState({
       message,
     });
